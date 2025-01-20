@@ -14,15 +14,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { CheckCircle2 } from 'lucide-react';
 
 interface GuidelinesDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onAccept: () => void;
+  gpuName: string;
 }
 
 export const GuidelinesDialog: React.FC<GuidelinesDialogProps> = ({
-  isOpen,
-  onClose,
+  open,
+  onOpenChange,
   onAccept,
+  gpuName,
 }) => {
   const guidelines = [
     {
@@ -55,7 +57,7 @@ export const GuidelinesDialog: React.FC<GuidelinesDialogProps> = ({
   ];
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Connect-to-Earn Guidelines</DialogTitle>
@@ -93,7 +95,7 @@ export const GuidelinesDialog: React.FC<GuidelinesDialogProps> = ({
         </ScrollArea>
 
         <DialogFooter className="flex space-x-2">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Review Later
           </Button>
           <Button onClick={onAccept}>

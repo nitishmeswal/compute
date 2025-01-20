@@ -17,8 +17,12 @@ import {
 } from "@/components/ui/tooltip";
 import { motion } from "framer-motion";
 import { ComingSoonOverlay } from '@/components/ComingSoonOverlay';
+import { useUser } from '@/lib/hooks/useUser';
+
+const DEV_EMAILS = ['nitishmeswal@gmail.com', 'neohex262@gmail.com', 'neurolov.ai@gmail.com'];
 
 export default function ConnectToEarn() {
+  const { user } = useUser();
   const [showScanDialog, setShowScanDialog] = useState(false);
   const [showGuidelines, setShowGuidelines] = useState(false);
   const [showMiningPlan, setShowMiningPlan] = useState(false);
@@ -28,43 +32,48 @@ export default function ConnectToEarn() {
   const [detectedGPU, setDetectedGPU] = useState('');
 
   // Mock data
-  const mockEarningStats = {
-    currentSession: {
-      duration: '1h 0m',
-      earnings: 13.0,
-      powerCost: 0.45,
-      netEarnings: 12.05
-    },
-    lifetimeEarnings: 450.75,
-    history: [
-      { date: '2024-12-08', earnings: 45 },
-      { date: '2024-12-09', earnings: 42 },
-      { date: '2024-12-10', earnings: 48 }
-    ]
+  const mockEarningsData = {
+    totalEarned: 450.75,
+    dailyRate: 25.5,
+    uptime: 98,
+    nextPayout: 24,
+  };
+
+  const mockGPUStats = {
+    utilization: 85,
+    temperature: 72,
+    power: 220,
+    memory: 8192,
   };
 
   const handleConnectGPU = () => {
-    setShowScanDialog(true);
+    if (user?.email && DEV_EMAILS.includes(user.email)) {
+      setShowScanDialog(true);
+    }
   };
 
   const handleScanComplete = (gpuName: string) => {
+    console.log('GPU Scan complete:', gpuName);
     setShowScanDialog(false);
     setDetectedGPU(gpuName);
     setShowGuidelines(true);
   };
 
   const handleGuidelinesAccept = () => {
+    console.log('Guidelines accepted');
     setShowGuidelines(false);
     setShowMiningPlan(true);
   };
 
   const handlePlanSelect = (duration: number) => {
+    console.log('Plan selected:', duration);
     setShowMiningPlan(false);
     setIsConnected(true);
     setSessionDuration(duration);
   };
 
   const handleCashout = () => {
+    console.log('Opening cashout dialog');
     setShowCashout(true);
   };
 
@@ -108,13 +117,14 @@ export default function ConnectToEarn() {
       </div>
 
       <div className="container mx-auto p-6 space-y-8 relative group">
-        <ComingSoonOverlay 
-          type="hover"
-          title="Connect to Earn"
-          description="Connect to Earn experience will be live in Version 3.0!"
-          version="3.0"
-        />
-
+        {(!user?.email || !DEV_EMAILS.includes(user.email)) && (
+          <ComingSoonOverlay 
+            type="hover"
+            title="Connect to Earn"
+            description="Connect to Earn experience will be live in Version 3.0!"
+            version="3.0"
+          />
+        )}
         {!isConnected ? (
           <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -195,7 +205,7 @@ export default function ConnectToEarn() {
               </Card>
             </div>
 
-            <div className="flex justify-center">
+            <div className="flex justify-center relative z-20">
               <button
                 onClick={handleConnectGPU}
                 className="px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold text-white transition-colors flex items-center gap-2 group"
@@ -207,67 +217,35 @@ export default function ConnectToEarn() {
           </div>
         ) : (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <Card className="p-6 bg-gradient-to-br from-green-500/10 to-blue-500/10 border-green-500/20">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-green-500/20 animate-pulse">
-                    <Lock className="w-6 h-6 text-green-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-white">Active Session</h3>
-                    <div className="flex items-center gap-2">
-                      <span className="text-green-400">{sessionDuration}h Session</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" />
+            {isConnected && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <Card className="p-6 bg-gradient-to-br from-green-500/10 to-blue-500/10 border-green-500/20">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-full bg-green-500/20 animate-pulse">
+                        <Lock className="w-6 h-6 text-green-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-white">Active Session</h3>
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-400">{sessionDuration}h Session</span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </Card>
+                  </Card>
 
-              <Card className="p-6 bg-[#1A1A1A] border-gray-800">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-blue-500/20">
-                    <Cpu className="w-6 h-6 text-blue-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-white">GPU Status</h3>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-400">{detectedGPU || "NVIDIA RTX 4090"}</span>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <div className="flex items-center gap-1">
-                              <span className="w-2 h-2 rounded-full bg-green-500" />
-                              <span className="text-xs text-green-400">Optimal</span>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-sm">GPU is running at optimal performance</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </div>
+                  <GPUMonitor stats={mockGPUStats} />
+                  <EarningsStats stats={mockEarningsData} onCashout={handleCashout} />
                 </div>
-              </Card>
 
-              <Card className="p-6 bg-[#1A1A1A] border-gray-800">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-purple-500/20">
-                    <Zap className="w-6 h-6 text-purple-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-white">Network Status</h3>
-                    <div className="flex items-center gap-2">
-                      <span className="text-purple-400">Connected</span>
-                      <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-xs">
-                        Pool: US East
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
+                <CashoutDialog
+                  open={showCashout}
+                  onOpenChange={setShowCashout}
+                  amount={mockEarningsData.totalEarned}
+                />
+              </>
+            )}
             <div className="grid gap-6">
               <Card className="p-6 bg-[#1A1A1A] border-gray-800">
                 <div className="flex flex-col space-y-6">
@@ -370,10 +348,16 @@ export default function ConnectToEarn() {
                 </div>
               </Card>
 
-              <EarningsStats stats={mockEarningStats} onCashout={handleCashout} />
+              <EarningsStats stats={mockEarningsData} onCashout={handleCashout} />
             </div>
           </div>
         )}
+
+        <GPUScanDialog
+          open={showScanDialog}
+          onOpenChange={setShowScanDialog}
+          onScanComplete={handleScanComplete}
+        />
 
         <GuidelinesDialog
           open={showGuidelines}
@@ -382,22 +366,10 @@ export default function ConnectToEarn() {
           gpuName={detectedGPU}
         />
 
-        <GPUScanDialog
-          open={showScanDialog}
-          onOpenChange={setShowScanDialog}
-          onScanComplete={handleScanComplete}
-        />
-
         <MiningPlanDialog
           open={showMiningPlan}
           onOpenChange={setShowMiningPlan}
           onSelectPlan={handlePlanSelect}
-        />
-
-        <CashoutDialog
-          open={showCashout}
-          onOpenChange={setShowCashout}
-          amount={mockEarningStats.currentSession.netEarnings}
         />
       </div>
     </div>

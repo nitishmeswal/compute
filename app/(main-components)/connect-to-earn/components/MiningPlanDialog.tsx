@@ -22,15 +22,15 @@ import {
 } from 'lucide-react';
 
 interface MiningPlanDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSelect: (plan: string) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSelectPlan: (duration: number) => void;
 }
 
 export const MiningPlanDialog: React.FC<MiningPlanDialogProps> = ({
-  isOpen,
-  onClose,
-  onSelect,
+  open,
+  onOpenChange,
+  onSelectPlan,
 }) => {
   const [selectedPlan, setSelectedPlan] = useState<string>('');
 
@@ -82,11 +82,15 @@ export const MiningPlanDialog: React.FC<MiningPlanDialogProps> = ({
 
   const handleSelect = (planId: string) => {
     setSelectedPlan(planId);
-    onSelect(planId);
+  };
+
+  const handleConfirm = () => {
+    const duration = selectedPlan === 'flexible' ? 4 : selectedPlan === 'dedicated' ? 12 : 24;
+    onSelectPlan(duration);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Choose Your Mining Plan</DialogTitle>
@@ -152,10 +156,10 @@ export const MiningPlanDialog: React.FC<MiningPlanDialogProps> = ({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={() => onSelect(selectedPlan)} disabled={!selectedPlan}>
+          <Button onClick={handleConfirm} disabled={!selectedPlan}>
             Confirm Selection
           </Button>
         </DialogFooter>

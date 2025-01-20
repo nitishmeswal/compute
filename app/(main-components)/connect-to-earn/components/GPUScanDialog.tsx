@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -16,23 +16,23 @@ import { Badge } from '@/components/ui/badge';
 import { Cpu, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 
 interface GPUScanDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onComplete: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onScanComplete: (gpuName: string) => void;
 }
 
 export const GPUScanDialog: React.FC<GPUScanDialogProps> = ({
-  isOpen,
-  onClose,
-  onComplete,
+  open,
+  onOpenChange,
+  onScanComplete,
 }) => {
   const [scanProgress, setScanProgress] = useState(0);
   const [scanComplete, setScanComplete] = useState(false);
   const [gpuDetails, setGpuDetails] = useState<any>(null);
 
   // Simulate GPU scan
-  React.useEffect(() => {
-    if (isOpen && !scanComplete) {
+  useEffect(() => {
+    if (open && !scanComplete) {
       const interval = setInterval(() => {
         setScanProgress((prev) => {
           if (prev >= 100) {
@@ -57,10 +57,16 @@ export const GPUScanDialog: React.FC<GPUScanDialogProps> = ({
 
       return () => clearInterval(interval);
     }
-  }, [isOpen, scanComplete]);
+  }, [open, scanComplete]);
+
+  useEffect(() => {
+    if (scanComplete && gpuDetails) {
+      onScanComplete(gpuDetails.name);
+    }
+  }, [scanComplete, gpuDetails]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>GPU Compatibility Scan</DialogTitle>
@@ -138,13 +144,13 @@ export const GPUScanDialog: React.FC<GPUScanDialogProps> = ({
         <DialogFooter>
           <Button
             variant="outline"
-            onClick={onClose}
+            onClick={() => onOpenChange(false)}
             disabled={!scanComplete}
           >
             Cancel
           </Button>
           <Button
-            onClick={onComplete}
+            onClick={() => onOpenChange(false)}
             disabled={!scanComplete || !gpuDetails?.compatible}
           >
             Continue
